@@ -58,8 +58,8 @@ if not np.allclose(kernel, kernel_test):
 
 #%%
 # Test with different kernel_size and sigma
-kernel_size = 100
-sigma = 10
+kernel_size = 5
+sigma = 1.4
 
 # Load image
 img = io.imread('iguana.png', as_grey=True)
@@ -86,10 +86,13 @@ plt.show()
 # #### Question (5 points)
 # What is the effect of changing kernel_size and sigma?  
 #%% [markdown]
-# **Your Answer:** Write your solution in this markdown cell.
-"kernel_size decides region size used to calculate smoothness in one output pixel."  
-"sigma decides the weight distributed in kernel region. "  
-"Using larger kernel_size and sigma get more smooth result."
+# **Your Answer:** Write your solution in this markdown cell.    
+#
+# "kernel_size decides region size used to calculate smoothness in one output pixel."   
+#    
+# "sigma decides the weight distributed in kernel region. "      
+#
+# "Using larger kernel_size and sigma get more smooth result."  
 #%% [markdown]
 # ### 1.2 Finding gradients (15 points)
 # The gradient of a 2D scalar function $I:\mathbb{R}^2\rightarrow{\mathbb{R}}$ in Cartesian coordinate is defined by:
@@ -178,8 +181,9 @@ plt.show()
 # #### Question (5 points)
 # What is the reason for performing smoothing prior to computing the gradients?
 #%% [markdown]
-# **Your Answer:** Write your solution in this markdown cell.  
-"Get rid of noise in image to get gradients cased by edge"
+# **Your Answer:** Write your solution in this markdown cell.    
+#
+# "Get rid of noise in image to get gradients cased by edge"
 #%% [markdown]
 # #### Implementation (5 points)
 # Now, we can compute the magnitude and direction of gradient with the two partial derivatives:
