@@ -183,7 +183,7 @@ plt.show()
 #%% [markdown]
 # **Your Answer:** Write your solution in this markdown cell.    
 #
-# "Get rid of noise in image to get gradients cased by edge"
+# "Get rid of noise in image to get gradients caused by edge"
 #%% [markdown]
 # #### Implementation (5 points)
 # Now, we can compute the magnitude and direction of gradient with the two partial derivatives:
@@ -265,6 +265,8 @@ plt.imshow(nms - reference)
 plt.title('Difference')
 plt.axis('off')
 plt.show()
+
+print((nms-reference)[0:10, 0:10])
 
 #%% [markdown]
 # ### 1.4 Double Thresholding (20 points)
@@ -378,7 +380,7 @@ plt.show()
 from edge import canny
 
 # Load image
-img = io.imread('iguana.png', as_grey=True)
+img = io.imread('iguana.png', as_gray=True)
 
 # Run Canny edge detector
 edges = canny(img, kernel_size=5, sigma=1.4, high=0.03, low=0.02)
@@ -430,9 +432,9 @@ from os import listdir
 from itertools import product
 
 # Define parameters to test
-sigmas = []
-highs = []
-lows = []
+sigmas = [1.4]
+highs = [0.03]
+lows = [0.02]
 
 for sigma, high, low in product(sigmas, highs, lows):
 

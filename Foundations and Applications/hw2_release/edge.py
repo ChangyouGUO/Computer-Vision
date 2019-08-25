@@ -70,7 +70,7 @@ def gaussian_kernel(size, sigma):
     k = size // 2
     for i in range(size):
         for j in range(size):
-            kernel[i][j] = 1/(2*np.pi*sigma*sigma)*np.exp(-((i-k)*(i-k)+(j-k)*(j-k))/2*sigma*sigma)
+            kernel[i][j] = (1/(2*np.pi*np.square(sigma)))*np.exp((-1)*(np.square(i-k)+np.square(j-k))/(2*np.square(sigma)))
     
     ### END YOUR CODE
     return kernel
@@ -90,7 +90,7 @@ def partial_x(img):
     out = None
 
     ### YOUR CODE HERE
-    kernel_x = np.array([[0.5, 0, -0.5]])
+    kernel_x = np.array([[0.5, 0.0, -0.5]])
     out = conv(img, kernel_x)
     ### END YOUR CODE
 
@@ -111,7 +111,7 @@ def partial_y(img):
     out = None
 
     ### YOUR CODE HERE
-    kernel_y = np.array([[0.5], [0], [-0.5]])
+    kernel_y = np.array([[0.5], [0.0], [-0.5]])
     out = conv(img, kernel_y)
     ### END YOUR CODE
     return out
@@ -133,6 +133,7 @@ def gradient(img):
     """
     G = np.zeros(img.shape)
     theta = np.zeros(img.shape)
+    G_test = np.zeros(img.shape)
 
     ### YOUR CODE HERE
     G_x = partial_x(img)
@@ -140,11 +141,21 @@ def gradient(img):
     for i in range(img.shape[0]):
         for j in range(img.shape[1]):
             G[i][j] = np.sqrt(np.power(G_x[i][j], 2) + np.power(G_y[i][j], 2))
-            theta[i][j] = np.arctan2(G_y[i][j], G_x[i][j])+180
+            G_test[i][j] = np.sqrt(np.square(G_x[i][j]) + np.square(G_y[i][j])) 
+            assert G[i][j] == G_test[i][j], "not equal"
+
+            theta[i][j] = (np.arctan2(G_y[i][j], G_x[i][j])*180/np.pi) + 180
+            if theta[i, j] == 360:
+                theta[i,j] = 0
     ### END YOUR CODE
 
     return G, theta
 
+
+def check(H, W, i, j):
+    if i>=0 and j>=0 and i<H and j<W:
+        return True
+    return False
 
 def non_maximum_suppression(G, theta):
     """ Performs non-maximum suppression.
@@ -163,12 +174,43 @@ def non_maximum_suppression(G, theta):
     out = np.zeros((H, W))
 
     # Round the gradient direction to the nearest 45 degrees
-    theta = np.floor((theta + 22.5) / 45) * 45
+    theta = np.floor((theta + 22.5) / 45) * 45  
 
     ### BEGIN YOUR CODE
-    pass
-    ### END YOUR CODE
+    for i in range(H):
+        for j in range(W):
+            if theta[i][j] / 45 == 0 or theta[i][j] / 45 == 4:
+                if check(H, W, i, j-1):
+                    if G[i][j] < G[i][j-1]:
+                        continue
+                if check(H, W, i, j+1):
+                    if G[i][j] < G[i][j+1]:
+                        continue
+            elif theta[i][j] / 45 == 1 or theta[i][j] / 45 == 5:
+                if check(H, W, i-1, j+1):
+                    if G[i][j] < G[i-1][j+1]:
+                        continue
+                if check(H, W, i+1, j-1):
+                    if G[i][j] < G[i+1][j-1]:
+                        continue
+            elif theta[i][j] / 45 == 2 or theta[i][j] / 45 == 6:
+                if check(H, W, i-1, j):
+                    if G[i][j] < G[i-1][j]:
+                        continue
+                if check(H, W, i+1, j):
+                    if G[i][j] < G[i+1][j]:
+                        continue
+            elif theta[i][j] / 45 == 3 or theta[i][j] / 45 == 7:
+                if check(H, W, i-1, j-1):
+                    if G[i][j] < G[i-1][j-1]:
+                        continue
+                if check(H, W, i+1, j+1):
+                    if G[i][j] < G[i+1][j+1]:
+                        continue
+            out[i][j] = G[i][j]
 
+            
+    ### END YOUR CODE
     return out
 
 def double_thresholding(img, high, low):
@@ -191,7 +233,13 @@ def double_thresholding(img, high, low):
     weak_edges = np.zeros(img.shape, dtype=np.bool)
 
     ### YOUR CODE HERE
-    pass
+    H, W = img.shape
+    for i in range(H):
+        for j in range(W):
+            if img[i,j] > high:
+                strong_edges[i, j] = True
+            elif img[i, j] > low:
+                weak_edges[i,j] = True
     ### END YOUR CODE
 
     return strong_edges, weak_edges
@@ -238,11 +286,17 @@ def link_edges(strong_edges, weak_edges):
     
     Returns:
         edges: numpy boolean array of shape(H, W).
-    """
+    """  
+    # 检查连接的要求，只要能连接到强点就可以将弱点进行转换吗？？？ 数据结构病毒的扩散？
 
     H, W = strong_edges.shape
     indices = np.stack(np.nonzero(strong_edges)).T
     edges = np.zeros((H, W), dtype=np.bool)
+
+    # print(strong_edges)
+    # print(np.nonzero(strong_edges))
+    # print(np.stack(np.nonzero(strong_edges)))
+    # print(np.stack(np.nonzero(strong_edges)).T)
 
     # Make new instances of arguments to leave the original
     # references intact
@@ -250,9 +304,14 @@ def link_edges(strong_edges, weak_edges):
     edges = np.copy(strong_edges)
 
     ### YOUR CODE HERE
-    pass
-    ### END YOUR CODE
+    Hs, Ws = indices.shape
+    for i in range(Hs):
+        neighbor = get_neighbors(indices[i, 0], indices[i, 1], H, W)
+        for j in range(len(neighbor)):
+            if weak_edges[neighbor[j][0], neighbor[j][1]] == True:
+                edges[neighbor[j][0], neighbor[j][1]] = True
 
+    ### END YOUR CODE
     return edges
 
 def canny(img, kernel_size=5, sigma=1.4, high=20, low=15):
@@ -268,9 +327,23 @@ def canny(img, kernel_size=5, sigma=1.4, high=20, low=15):
         edge: numpy array of shape(H, W).
     """
     ### YOUR CODE HERE
-    pass
-    ### END YOUR CODE
+    #step1 Smoothing  
+    kernel = gaussian_kernel(kernel_size, sigma)
+    smoothed = conv(img, kernel)
 
+    #step2 Finding gradients  
+    G, theta = gradient(smoothed)
+   
+    #step3 Non-maximun suppresion  
+    nms = non_maximum_suppression(G, theta)
+
+    #step4 Double thresholding
+    strong_edges, weak_edges = double_thresholding(nms, high, low)
+
+    #step5 Edge tracking by hysterisis  
+    edge = link_edges(strong_edges, weak_edges)
+
+    ### END YOUR CODE
     return edge
 
 
