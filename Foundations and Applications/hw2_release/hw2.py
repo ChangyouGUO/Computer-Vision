@@ -62,7 +62,7 @@ kernel_size = 5
 sigma = 1.4
 
 # Load image
-img = io.imread('iguana.png', as_grey=True)
+img = io.imread('iguana.png', as_gray=True)
 
 # Define 5x5 Gaussian kernel with std = sigma
 kernel = gaussian_kernel(kernel_size, sigma)
@@ -266,7 +266,7 @@ plt.title('Difference')
 plt.axis('off')
 plt.show()
 
-print((nms-reference)[0:10, 0:10])
+# print((nms-reference)[0:10, 0:10])
 
 #%% [markdown]
 # ### 1.4 Double Thresholding (20 points)
@@ -418,11 +418,11 @@ plt.show()
 # 
 # *-Hint: The detection of an edge by the Canny edge detector depends only on the magnitude of its derivative. The derivative at point (x, y) is determined by its components along the x and y directions. Think about how these magnitudes have changed because of the rotation.*
 #%% [markdown]
-# **Your Answer:** Write your solution in this markdown cell.
+# **Your Answer:** ??? I think magnitude of edges derivate depend on the pixels around the edges, After rotated the edges, new neighbor pixels decides whether edge could be detected.
 #%% [markdown]
 # **(b)** After running the Canny edge detector on an image, you notice that long edges are broken into short segments separated by gaps. In addition, some spurious edges appear. For each of the two thresholds (low and high) used in hysteresis thresholding, explain how you would adjust the threshold (up or down) to address both problems. Assume that a setting exists for the two thresholds that produces the desired result. Briefly explain your answer.
 #%% [markdown]
-# **Your Answer:** Write your solution in this markdown cell.
+# **Your Answer:** Decrease low threshold remains long edges. Increasing high threshold gets rid of spurious edges.
 #%% [markdown]
 # ### Extra Credit: Optimizing Edge Detector
 # One way of evaluating an edge detector is to compare detected edges with manually specified ground truth edges. Here, we use precision, recall and F1 score as evaluation metrics. We provide you 40 images of objects with ground truth edge annotations. Run the code below to compute precision, recall and F1 score over the entire set of images. Then, tweak the parameters of the Canny edge detector to get as high F1 score as possible. You should be able to achieve F1 score higher than 0.31 by carefully setting the parameters.
@@ -432,9 +432,10 @@ from os import listdir
 from itertools import product
 
 # Define parameters to test
-sigmas = [1.4]
-highs = [0.03]
-lows = [0.02]
+sigmas = [1.0, 1.4]
+highs = [30, 25, 20]
+lows = [10, 12.5, 15]
+# 为什么这些图的G_max都达到50+
 
 for sigma, high, low in product(sigmas, highs, lows):
 
@@ -444,8 +445,8 @@ for sigma, high, low in product(sigmas, highs, lows):
     n_correct = 0.0
 
     for img_file in listdir('images/objects'):
-        img = io.imread('images/objects/'+img_file, as_grey=True)
-        gt = io.imread('images/gt/'+img_file+'.gtf.pgm', as_grey=True)
+        img = io.imread('images/objects/'+img_file, as_gray=True)
+        gt = io.imread('images/gt/'+img_file+'.gtf.pgm', as_gray=True)
 
         mask = (gt != 5) # 'don't' care region
         gt = (gt == 0) # binary image of GT edges
@@ -485,7 +486,7 @@ for sigma, high, low in product(sigmas, highs, lows):
 from edge import canny
 
 # Load image
-img = io.imread('road.jpg', as_grey=True)
+img = io.imread('road.jpg', as_gray=True)
 
 # Run Canny edge detector
 edges = canny(img, kernel_size=5, sigma=1.4, high=0.03, low=0.02)
@@ -600,3 +601,6 @@ plt.axis('off')
 plt.show()
 
 
+
+
+#%%

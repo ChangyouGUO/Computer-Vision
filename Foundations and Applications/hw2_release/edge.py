@@ -88,10 +88,10 @@ def partial_x(img):
     """
 
     out = None
-
+    imgUse = img.copy()
     ### YOUR CODE HERE
     kernel_x = np.array([[0.5, 0.0, -0.5]])
-    out = conv(img, kernel_x)
+    out = conv(imgUse, kernel_x)
     ### END YOUR CODE
 
     return out
@@ -109,10 +109,10 @@ def partial_y(img):
     """
 
     out = None
-
+    imgUse = img.copy()
     ### YOUR CODE HERE
     kernel_y = np.array([[0.5], [0.0], [-0.5]])
-    out = conv(img, kernel_y)
+    out = conv(imgUse, kernel_y)
     ### END YOUR CODE
     return out
 
@@ -136,6 +136,11 @@ def gradient(img):
     G_test = np.zeros(img.shape)
 
     ### YOUR CODE HERE
+    G_min = 10
+    G_max = 0
+    t_min = 370
+    t_max = 0
+
     G_x = partial_x(img)
     G_y = partial_y(img)  
     for i in range(img.shape[0]):
@@ -147,8 +152,14 @@ def gradient(img):
             theta[i][j] = (np.arctan2(G_y[i][j], G_x[i][j])*180/np.pi) + 180
             if theta[i, j] == 360:
                 theta[i,j] = 0
+
+            G_min = min(G_min, G[i, j])
+            G_max = max(G_max, G[i, j])
+            t_max = max(t_max, theta[i, j])
+            t_min = min(t_min, theta[i, j])
     ### END YOUR CODE
 
+    print("G min:{}, max:{}; theta min:{}, max{}".format(G_min, G_max, t_min, t_max))
     return G, theta
 
 
@@ -179,7 +190,7 @@ def non_maximum_suppression(G, theta):
     ### BEGIN YOUR CODE
     for i in range(H):
         for j in range(W):
-            if theta[i][j] / 45 == 0 or theta[i][j] / 45 == 4:
+            if theta[i][j] / 45 == 0 or theta[i][j] / 45 == 4 or theta[i][j] / 45 == 8:
                 if check(H, W, i, j-1):
                     if G[i][j] < G[i][j-1]:
                         continue
@@ -287,16 +298,11 @@ def link_edges(strong_edges, weak_edges):
     Returns:
         edges: numpy boolean array of shape(H, W).
     """  
-    # 检查连接的要求，只要能连接到强点就可以将弱点进行转换吗？？？ 数据结构病毒的扩散？
+    # 检查连接的要求，只要能连接到强点就可以将弱点进行转换吗？宽度优先搜索
 
     H, W = strong_edges.shape
     indices = np.stack(np.nonzero(strong_edges)).T
     edges = np.zeros((H, W), dtype=np.bool)
-
-    # print(strong_edges)
-    # print(np.nonzero(strong_edges))
-    # print(np.stack(np.nonzero(strong_edges)))
-    # print(np.stack(np.nonzero(strong_edges)).T)
 
     # Make new instances of arguments to leave the original
     # references intact
@@ -304,13 +310,17 @@ def link_edges(strong_edges, weak_edges):
     edges = np.copy(strong_edges)
 
     ### YOUR CODE HERE
-    Hs, Ws = indices.shape
-    for i in range(Hs):
-        neighbor = get_neighbors(indices[i, 0], indices[i, 1], H, W)
+    waitLists = []
+    for i in range(len(indices)):
+        waitLists.append((indices[i, 0], indices[i, 1]))
+    while( len(waitLists) !=0 ):
+        (y, x) = waitLists.pop(0)
+        neighbor = get_neighbors(y, x, H, W)
         for j in range(len(neighbor)):
             if weak_edges[neighbor[j][0], neighbor[j][1]] == True:
                 edges[neighbor[j][0], neighbor[j][1]] = True
-
+                waitLists.append((neighbor[j][0], neighbor[j][1]))
+                weak_edges[neighbor[j][0], neighbor[j][1]] = False
     ### END YOUR CODE
     return edges
 
@@ -381,7 +391,10 @@ def hough_transform(img):
     # Find rho corresponding to values in thetas
     # and increment the accumulator in the corresponding coordiate.
     ### YOUR CODE HERE
-    pass
+    for i in range(len(ys)):
+        crhos = xs[i]*cos_t + ys[i]*sin_t
+        for j in range(num_thetas):
+            accumulator[np.argwhere(rhos==int(crhos[j])), j] += 1
     ### END YOUR CODE
 
     return accumulator, rhos, thetas
