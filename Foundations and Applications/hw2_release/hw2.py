@@ -432,10 +432,11 @@ from os import listdir
 from itertools import product
 
 # Define parameters to test
-sigmas = [1.0, 1.4]
-highs = [30, 25, 20]
-lows = [10, 12.5, 15]
+sigmas = [1.0, 1.4, 0.8]
+highs = [10, 15, 20, 5]
+lows = [0.5, 1, 5]
 # 为什么这些图的G_max都达到50+
+# 现在最好的是 0.8， 15， 5
 
 for sigma, high, low in product(sigmas, highs, lows):
 

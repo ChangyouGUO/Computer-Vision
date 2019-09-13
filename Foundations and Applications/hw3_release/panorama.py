@@ -16,6 +16,33 @@ from scipy.ndimage.filters import convolve
 
 from utils import pad, unpad, get_output_space, warp_image
 
+def gaussian_kernel(size, sigma):
+    """ Implementation of Gaussian Kernel.
+
+    This function follows the gaussian kernel formula,
+    and creates a kernel matrix.
+
+    Hints:
+    - Use np.pi and np.exp to compute pi and exp.
+
+    Args:
+        size: int of the size of output matrix.
+        sigma: float of sigma to calculate kernel.
+
+    Returns:
+        kernel: numpy array of shape (size, size).
+    """
+
+    kernel = np.zeros((size, size))
+
+    ### YOUR CODE HERE
+    k = size // 2
+    for i in range(size):
+        for j in range(size):
+            kernel[i][j] = (1/(2*np.pi*np.square(sigma)))*np.exp((-1)*(np.square(i-k)+np.square(j-k))/(2*np.square(sigma)))
+    
+    ### END YOUR CODE
+    return kernel
 
 def harris_corners(img, window_size=3, k=0.04):
     """
@@ -44,7 +71,21 @@ def harris_corners(img, window_size=3, k=0.04):
     dy = filters.sobel_h(img)
 
     ### YOUR CODE HERE
-    pass
+    Ix2 = np.square(dx)
+    Iy2 = np.square(dy)
+    Ixy = dx * dy   
+
+    mIx2 = convolve(Ix2, window, mode='constant', cval=0.0)
+    mIy2 = convolve(Iy2, window, mode='constant', cval=0.0)
+    mIxy = convolve(Ixy, window, mode='constant', cval=0.0)
+
+    window = gaussian_kernel(window_size, 1.4)
+
+    for i in range(H):
+        for j in range(W):
+            M = np.array([[mIx2[i, j], mIxy[i, j]], [mIxy[i, j], mIy2[i, j]]])
+            response[i, j] = np.linalg.det(M) - k * np.square(np.trace(M))
+        
     ### END YOUR CODE
 
     return response
