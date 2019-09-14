@@ -107,7 +107,7 @@ def get_output_space(img_ref, imgs, transforms):
         r, c = imgs[i].shape
         H = transforms[i]
         corners = np.array([[0, 0], [r, 0], [0, c], [r, c]])
-        warped_corners = corners.dot(H[:2,:2]) + H[2,:2]
+        warped_corners = corners.dot(H[:2,:2]) + H[2,:2]  # 先旋转，后平移
         all_corners.append(warped_corners)
 
     # Find the extents of both the reference image and the warped

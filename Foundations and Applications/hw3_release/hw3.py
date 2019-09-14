@@ -231,7 +231,8 @@ p2 = keypoints2[matches[:,1]]
 # Find affine transformation matrix H that maps p2 to p1
 H = fit_affine_matrix(p1, p2)
 
-output_shape, offset = get_output_space(img1, [img2], [H])
+# 这里的实现还没看懂！！！
+output_shape, offset = get_output_space(img1, [img2], [H]) 
 print("Output shape:", output_shape)
 print("Offset:", offset)
 

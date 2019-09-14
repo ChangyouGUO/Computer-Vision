@@ -111,7 +111,12 @@ def simple_descriptor(patch):
     """
     feature = []
     ### YOUR CODE HERE
-    pass
+    pm = np.mean(patch)
+    pstd = np.std(patch, ddof=1)
+    if pstd == 0:
+        pstd = 1
+    npatch = (patch - pm)/pstd
+    feature = list(npatch.flatten())
     ### END YOUR CODE
     return feature
 
@@ -164,7 +169,11 @@ def match_descriptors(desc1, desc2, threshold=0.5):
     dists = cdist(desc1, desc2)
 
     ### YOUR CODE HERE
-    pass
+    sdists = np.sort(dists, axis=1)
+    for i in range(N):
+        if sdists[i, 0]/sdists[i,1] < threshold:
+            matches.append([i, np.argmin(dists[i])])
+    matches = np.asarray(matches)
     ### END YOUR CODE
 
     return matches
@@ -190,7 +199,8 @@ def fit_affine_matrix(p1, p2):
     p2 = pad(p2)
 
     ### YOUR CODE HERE
-    pass
+    result  = np.linalg.lstsq(p2, p1)
+    H = result[0]
     ### END YOUR CODE
 
     # Sometimes numerical issues cause least-squares to produce the last
@@ -236,10 +246,24 @@ def ransac(keypoints1, keypoints2, matches, n_iters=200, threshold=20):
     n_inliers = 0
 
     # RANSAC iteration start
-    ### YOUR CODE HERE
+    ### YOUR CODE HERE  在调用linalg.lstsq的顺序上出错
+    for iter in range(n_iters):
+        num_inliers = 0;
+        inlies = np.zeros(N)
+        sample_index = np.random.choice(N, n_samples, replace=False)  #random.randint可能会产生重复的值，random.choice参数replace=False确保了返回值不重复
+        H  = np.linalg.lstsq(matched2[sample_index], matched1[sample_index])[0]
+        H[:,2] = np.array([0, 0, 1])
+        inlies = np.linalg.norm(matched1-np.matmul(matched2, H), ord=2, axis=1)**2 < threshold
+        num_inliers = np.sum(inlies)
+        if num_inliers > n_inliers:
+            n_inliers = num_inliers
+            max_inliers = np.array(inlies).copy()
+    H  = np.linalg.lstsq(matched2[max_inliers], matched1[max_inliers])[0]
+    H[:,2] = np.array([0, 0, 1])
     pass
+    print(n_inliers)
     ### END YOUR CODE
-    print(H)
+    print(H) 
     return H, orig_matches[max_inliers]
 
 
