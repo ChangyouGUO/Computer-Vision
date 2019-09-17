@@ -69,7 +69,7 @@ get_ipython().magic('autoreload 2')
 #%%
 from panorama import harris_corners
 
-img = imread('sudoku.png', as_gray=True)
+img = imread('sudoku.png', as_grey=True)
 
 # Compute Harris corner response
 response = harris_corners(img)
@@ -81,7 +81,7 @@ plt.axis('off')
 plt.title('Harris Corner Response')
 
 plt.subplot(1,2,2)
-plt.imshow(imread('solution_harris.png', as_gray=True))
+plt.imshow(imread('solution_harris.png', as_grey=True))
 plt.axis('off')
 plt.title('Harris Corner Solution')
 

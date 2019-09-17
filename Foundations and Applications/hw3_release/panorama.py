@@ -62,7 +62,8 @@ def harris_corners(img, window_size=3, k=0.04):
         response: Harris response image of shape (H, W)
     """
 
-    H, W = img.shape
+    H = img.shape[0]
+    W = img.shape[1]
     window = np.ones((window_size, window_size))
 
     response = np.zeros((H, W))
@@ -313,9 +314,20 @@ def hog_descriptor(patch, pixels_per_cell=(8,8)):
 
     # Compute histogram per cell
     ### YOUR CODE HERE
-    pass
-    ### YOUR CODE HERE
-
+    for i in range(rows):
+        for j in range(cols):
+            for ii in range(pixels_per_cell[0]):
+                for jj in range(pixels_per_cell[1]):
+                    index =  int(theta_cells[i, j, ii, jj] // degrees_per_bin)
+                    if index == 9:
+                        index = 0
+                    cells[i, j, index] += G_cells[i, j, ii, jj]                    
+    flatten_cells = cells.flatten()
+    mean = np.mean(flatten_cells)
+    std = np.std(flatten_cells, ddof=1)
+    if std == 0:
+        std = 1
+    block = (flatten_cells-mean)/std
     return block
 
 
