@@ -237,7 +237,6 @@ def ransac(keypoints1, keypoints2, matches, n_iters=200, threshold=20):
     matches = matches.copy()
 
     N = matches.shape[0]
-    print(N)
     n_samples = int(N * 0.2)
 
     matched1 = pad(keypoints1[matches[:,0]])
@@ -261,10 +260,8 @@ def ransac(keypoints1, keypoints2, matches, n_iters=200, threshold=20):
             max_inliers = np.array(inlies).copy()
     H  = np.linalg.lstsq(matched2[max_inliers], matched1[max_inliers])[0]
     H[:,2] = np.array([0, 0, 1])
-    pass
-    print(n_inliers)
     ### END YOUR CODE
-    print(H) 
+    
     return H, orig_matches[max_inliers]
 
 
@@ -361,7 +358,16 @@ def linear_blend(img1_warped, img2_warped):
     left_margin = np.argmax(img2_mask[out_H//2, :].reshape(1, out_W), 1)[0]
 
     ### YOUR CODE HERE
-    pass
+    img1_mask = img1_mask * 1.0
+    img2_mask = img2_mask * 1.0
+    img1_mask[0:out_H, left_margin:right_margin+1] = np.tile(np.linspace(1.0, 0.0, num=right_margin-left_margin+1,endpoint=True), (out_H ,1) )
+    img2_mask[0:out_H, left_margin:right_margin+1] = np.tile(np.linspace(0.0, 1.0, num=right_margin-left_margin+1,endpoint=True), (out_H, 1) )
+    
+    warped = img1_warped + img2_warped
+    overlap =img1_mask*1.0 + img2_mask
+    merged = warped/np.maximum(overlap, 1)
+
+    merged = img1_warped*img1_mask + img2_warped*img2_mask
     ### END YOUR CODE
 
     return merged
