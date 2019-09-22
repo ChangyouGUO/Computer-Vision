@@ -408,7 +408,61 @@ def stitch_multiple_images(imgs, desc_func=simple_descriptor, patch_size=5):
         matches.append(mtchs)
 
     ### YOUR CODE HERE
-    pass
+    print("imgs num:", len(imgs))
+    Hs = []
+    for i in range(len(imgs)-1):
+        H, robust_matches = ransac(keypoints[i], keypoints[i+1], matches[i], threshold=1)
+        Hs.append(H)
+    print("H num:", len(Hs))
+    print("H shape:", Hs[0].shape)
+    Res = []
+    images = []  #without middle img
+    mid = len(imgs)//2
+    for i in range(len(imgs)-1):
+        tmp = np.eye(Hs[0].shape[0], Hs[0].shape[1])
+        if i < mid:
+            for j in range(i,mid):
+                tmp = np.matmul(tmp, np.linalg.inv(Hs[j]))
+        elif i>=mid:
+            for j in range(mid, i+1):
+                tmp = np.matmul(tmp, Hs[j])
+        Res.append(tmp)
+        # print(tmp)
+        if i != mid:
+            images.append(imgs[i])
+    images.append(imgs[-1])
+    print("Res shape", Res[0].shape)
+
+    output_shape, offset = get_output_space(imgs[mid], images, Res)
+
+    img_warpeds = []
+    img_masks = []
+    for i in range(len(imgs)):
+        # print(i)
+        if i == mid:
+            img_warp = warp_image(imgs[i], np.eye(3), output_shape, offset)
+            img_mask = (img_warp != -1)
+            img_warp[~img_mask] = 0
+
+            img_warpeds.append(img_warp)
+            img_masks.append(img_mask)
+        else:
+            if i>mid:
+                img_warp = warp_image(imgs[i], Res[i-1], output_shape, offset)
+            else: 
+                img_warp = warp_image(imgs[i], Res[i], output_shape, offset)
+            img_mask = (img_warp != -1)
+            img_warp[~img_mask] = 0
+
+            img_warpeds.append(img_warp)
+            img_masks.append(img_mask)
+
+    merged = img_warpeds[0]
+    overlap = img_masks[0]*1.0
+    for i in range(1, len(img_warpeds)):
+        merged += img_warpeds[i]
+        overlap += img_masks[i]
+    panorama = merged / np.maximum(overlap, 1)
     ### END YOUR CODE
 
     return panorama

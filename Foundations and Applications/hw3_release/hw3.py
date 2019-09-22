@@ -233,8 +233,8 @@ H = fit_affine_matrix(p1, p2)
 
 # 这里的实现还没看懂！！！
 output_shape, offset = get_output_space(img1, [img2], [H]) 
-print("Output shape:", output_shape)
-print("Offset:", offset)
+# print("Output shape:", output_shape)
+# print("Offset:", offset)
 
 
 # Warp images into output sapce
