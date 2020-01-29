@@ -37,6 +37,21 @@ def plot_part2(image, r, c, response_map, winW, winH):
     plt.title('sliding window')
     plt.show()
 
+    
+def plot_part2_2(image, r, c, winW, winH):
+    """plot face part"""
+    fig, ax = plt.subplots(1)
+    ax.imshow(image)
+    rect = patches.Rectangle((c, r),
+                             winW,
+                             winH,
+                             linewidth=1,
+                             edgecolor='r',
+                             facecolor='none')
+    ax.add_patch(rect)
+    plt.title('face part')
+    plt.show()
+                 
 
 def plot_part3_1(images):
     """plot image pyramid."""
@@ -124,7 +139,9 @@ def plot_part5_2(lefteye_heatmap_shifted, righteye_heatmap_shifted,
 def plot_part6_1(winH, winW, heatmap, image, i, j):
     """plot heatmaps and optimal window."""
     fig, ax = plt.subplots(1)
-    rect = patches.Rectangle((j - winW // 2, i - winH // 2),
+    # 原始代码，为什么有偏移？？？
+    #rect = patches.Rectangle((j - winW // 2, i - winH // 2),
+    rect = patches.Rectangle((j, i),
                              winW,
                              winH,
                              linewidth=1,
@@ -137,7 +154,9 @@ def plot_part6_1(winH, winW, heatmap, image, i, j):
     plt.show()
 
     fig, ax = plt.subplots(1)
-    rect = patches.Rectangle((j - winW // 2, i - winH // 2),
+    # 原始代码，为什么有偏移量？？？
+    #rect = patches.Rectangle((j - winW // 2, i - winH // 2),
+    rect = patches.Rectangle((j, i),
                              winW,
                              winH,
                              linewidth=1,
