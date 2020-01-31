@@ -47,9 +47,22 @@ def lucas_kanade(img1, img2, keypoints, window_size=5):
         # In order to achieve more accurate results, image brightness at subpixel
         # locations can be computed using bilinear interpolation.
         y, x = int(round(y)), int(round(x))
-
+        
         ### YOUR CODE HERE
-        pass
+        IxA = Ix[y-w:y+w+1, x-w:x+w+1].reshape(window_size*window_size, 1)
+        IyA = Iy[y-w:y+w+1, x-w:x+w+1].reshape(window_size*window_size, 1)
+        A = np.hstack((IxA, IyA))
+        assert A.shape == (25, 2)
+        
+        b = -(It[y-w:y+w+1, x-w:x+w+1].reshape(window_size*window_size, 1))
+        assert b.shape == (25, 1)
+        
+        v = np.zeros((2, 1))
+        A_TA = np.matmul(A.T, A)
+        v = np.matmul(np.matmul(np.linalg.inv(A_TA), A.T), b)
+        assert v.shape == (2, 1)
+        
+        flow_vectors.append([v[0,0], v[1,0]])
         ### END YOUR CODE
 
     flow_vectors = np.array(flow_vectors)
@@ -168,7 +181,11 @@ def compute_error(patch1, patch2):
     assert patch1.shape == patch2.shape, 'Differnt patch shapes'
     error = 0
     ### YOUR CODE HERE
-    pass
+    ## normalize 如何处理？？？线性函数转换后，error极小，完全没有效果 normalize 归一化 还是 standardize 标准化???
+    
+    n_patch1 = (patch1-np.mean(patch1))/np.std(patch1, ddof=1)
+    n_patch2 = (patch2-np.mean(patch2))/np.std(patch2, ddof=1)
+    error = np.mean(np.square(n_patch2-n_patch1))
     ### END YOUR CODE
     return error
 
