@@ -1,0 +1,6 @@
+#ifndef _SRC_INCLUDE_LOG_HPP_
+#define _SRC_INCLUDE_LOG_HPP_
+
+#define HOG_DEBUG_MODE (1)
+
+#endif /*_SRC_INCLUDE_LOG_HPP_*/

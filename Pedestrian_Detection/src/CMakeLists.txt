@@ -5,13 +5,15 @@ set(TARGET_NAME "PedDetection")
 SET(CMAKE_BUILD_TYPE "Release")
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
-    SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb")
+    SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -std=c++11 -O0 -Wall -g -ggdb")
 elseif(CMAKE_BUILD_TYPE MATCHES "Release")
-    SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
+    SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -std=c++11 -O3 -Wall")
 endif()
 
 ### ------ Module Building Settings ------ ###
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source)
+
 file(GLOB PedDetection_all_srcs LIST_DIRECTORIES false "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
 
 ### ------ Module Compile ------ ###
