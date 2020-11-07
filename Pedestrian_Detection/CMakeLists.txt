@@ -18,4 +18,5 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/buildRelease/bi
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 ### ------ Build Sub-Modules ------ ###
+add_subdirectory(deps)
 add_subdirectory(src)

@@ -10,16 +10,28 @@ elseif(CMAKE_BUILD_TYPE MATCHES "Release")
     SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -std=c++11 -O3 -Wall")
 endif()
 
+
+set(THIRDPARTY_DEPS_DIR "${CMAKE_SOURCE_DIR}/deps")
+
 ### ------ Module Building Settings ------ ###
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/)
+include_directories(${THIRDPARTY_DEPS_DIR}/include/)
 
-file(GLOB PedDetection_all_srcs LIST_DIRECTORIES false "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp")
 
 ### ------ Module Compile ------ ###
-add_executable(${TARGET_NAME} ${PedDetection_all_srcs})
+set(PREDICT_LIST main.cpp hog.cpp)
+add_executable(${TARGET_NAME} ${PREDICT_LIST})
+
+set(PEDESTRIAN_TRAIN "ped_train")
+set(TRAIN_LIST ped_train.cpp)
+add_executable(${PEDESTRIAN_TRAIN}  ${TRAIN_LIST})
+
 target_link_libraries(${TARGET_NAME} 
-                      ${OpenCV_LIBS})
+${OpenCV_LIBS}
+)
 
-
-
+target_link_libraries(${PEDESTRIAN_TRAIN} 
+${OpenCV_LIBS}
+${LibSVM}
+)
