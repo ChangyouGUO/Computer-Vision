@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(LibSVM)
+set(TARGET_NAME "LibSVM")
+project(${TARGET_NAME})
 
 SET( CMAKE_CXX_FLAGS "-std=c++11 -O3" )
 
 include_directories(${CMAKE_SOURCE_DIR}/deps/include/LibSVM/)
 
-add_library("svm" STATIC svm.cpp)
+add_library(${TARGET_NAME} STATIC svm.cpp)

@@ -17,21 +17,23 @@ set(THIRDPARTY_DEPS_DIR "${CMAKE_SOURCE_DIR}/deps")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/)
 include_directories(${THIRDPARTY_DEPS_DIR}/include/)
+include_directories(${THIRDPARTY_DEPS_DIR}/LibSVM/)
 
 
 ### ------ Module Compile ------ ###
-set(PREDICT_LIST main.cpp hog.cpp)
+set(PREDICT_LIST "source/main.cpp" "source/hog.cpp")
 add_executable(${TARGET_NAME} ${PREDICT_LIST})
-
-set(PEDESTRIAN_TRAIN "ped_train")
-set(TRAIN_LIST ped_train.cpp)
-add_executable(${PEDESTRIAN_TRAIN}  ${TRAIN_LIST})
 
 target_link_libraries(${TARGET_NAME} 
 ${OpenCV_LIBS}
 )
 
+
+set(PEDESTRIAN_TRAIN "ped_train")
+set(TRAIN_LIST "source/ped_train.cpp")
+add_executable(${PEDESTRIAN_TRAIN}  ${TRAIN_LIST})
+
 target_link_libraries(${PEDESTRIAN_TRAIN} 
 ${OpenCV_LIBS}
-${LibSVM}
+LibSVM
 )
