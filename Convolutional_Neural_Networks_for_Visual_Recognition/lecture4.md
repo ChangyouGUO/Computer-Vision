@@ -24,19 +24,40 @@ Do not use size of neural network as a regularizer. Use stronger regularization 
 
 ## Problem: How to compute gradients
 
-P38  
-***Todo***  
+P38
+***Todo***
 loss 采用 svm+regularization
 
 Upstream gradient:
-$\frac{\partial L}{\partial z}$  
+$\frac{\partial L}{\partial z}$
 local gradient:
-$\frac{\partial z}{\partial x}$, $\frac{\partial z}{\partial y}$  
+$\frac{\partial z}{\partial x}$, $\frac{\partial z}{\partial y}$
 Downstream gradient:
-$\frac{\partial L}{\partial x}$  
+$\frac{\partial L}{\partial x}$
 
 ## Patterns in gradient flow
 
 ## Backprop Implementation: Modularized API
 
-Forward and Backprop implementation in pytorch
+Backprop Implementation: Modularized API
+
+```python
+class ComputationalGraph(object):
+    #...
+    def forward(inputs):
+        # 1. [pass inputs to input gates...]
+        # 2. forward the computational graph:  
+        for gate in self.graph.nodes_topologically_sorted():
+            gate.forward()
+        return loss # the final gate in the graph outputs the loss
+    def backward():
+        for gate in reversed(self.graph.nodes_topologically_sorted()):
+            gate.backward() # little piece of backprop (chain rule applied)
+        return inputs_gradients
+```
+
+Forward and Backprop implementation in pytorch  
+
+Backprop with Matrices(or Tensors)
+
+
