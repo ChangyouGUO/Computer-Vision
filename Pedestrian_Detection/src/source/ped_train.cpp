@@ -1,6 +1,7 @@
 #include "ped_train.hpp"
 
-#include <chrono>
+#include <getopt.h>
+#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -12,7 +13,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/ml/ml.hpp>
-#include <opencv2/objdetect/objdetect.hpp> //HOGDescriptor
+#include <opencv2/objdetect/objdetect.hpp>  // HOGDescriptor
 
 #define Malloc(type, n) (type *)malloc((n) * sizeof(type))
 
@@ -33,15 +34,26 @@ struct svm_node *x_space;
 int cross_validation;
 int nr_fold;
 
+// args
+#define BUFFER_LEN (256)
+char pos_image_path[BUFFER_LEN];
+char neg_image_path[BUFFER_LEN];
+char model_params[BUFFER_LEN];
+char model_file_name[BUFFER_LEN];
+
 void ZScore(cv::Mat &trainData, vector<double> &mean, vector<double> &standard);
 
 void prepare_param();
 void saveParams(vector<double> &mean, vector<double> &standard);
 
+void arg_parse(int argc, char **argv);
+
 int main(int argc, char **argv) {
+  arg_parse(argc, argv);
+
   // Image file
-  cv::String PedPath = "Close/*.jpg";
-  cv::String NotPedPath = "Open/*.jpg";
+  cv::String PedPath = string(pos_image_path) + "/*";
+  cv::String NotPedPath = string(neg_image_path) + "/*";
 
   vector<cv::String> pedFn;
   vector<cv::String> NotPedFn;
@@ -49,36 +61,34 @@ int main(int argc, char **argv) {
   cv::glob(PedPath, pedFn, false);
   cv::glob(NotPedPath, NotPedFn, false);
 
-  cout << pedFn.size() << " " << NotPedFn.size() << endl;
+  cout << "pos files: " << pedFn.size() << endl;
+  cout << "neg files: " << NotPedFn.size() << endl;
 
   // cvHog
   cv::HOGDescriptor cvHog(
-      Size(IMAGE_SIZE, IMAGE_SIZE),
+      Size(IMAGE_WIDTH, IMAGE_HEIGHT),
       Size(PIXEL_PER_CELL * CELL_PER_BLOCK, PIXEL_PER_CELL * CELL_PER_BLOCK),
       Size(PIXEL_PER_CELL, PIXEL_PER_CELL),
       Size(PIXEL_PER_CELL, PIXEL_PER_CELL), ORIENT, 1, (-1.0),
       HOGDescriptor::L2Hys, 0.2, true);
 
-  int DescriptorDim = 0;
-  cv::Mat trainFeatureMat; // row: data num, col: descriptor dim
-  cv::Mat trainLabelMat;   // row: data num, col=1
-  vector<int> order(pedFn.size() + NotPedFn.size());
+  int DescriptorDim = ORIENT * CELL_PER_BLOCK * CELL_PER_BLOCK *
+                      (IMAGE_WIDTH / PIXEL_PER_CELL - 1) *
+                      (IMAGE_HEIGHT / PIXEL_PER_CELL - 1);
 
-  // ped Label = 1
+  int train_image_nums = pedFn.size() + NotPedFn.size();
+  cv::Mat trainFeatureMat = cv::Mat::zeros(train_image_nums, DescriptorDim,
+                                           CV_32FC1);  // Data for cv::Mat
+  cv::Mat trainLabelMat = cv::Mat::zeros(train_image_nums, 1,
+                                         CV_32SC1);  // row: data num, col=1
+  vector<int> order(train_image_nums);
+
+  // pos Label = 1
   for (size_t i = 0; i < pedFn.size(); i++) {
     cv::Mat image = imread(pedFn[i]);
 
     vector<float> descriptors;
     cvHog.compute(image, descriptors);
-
-    if (i == 0) {
-      DescriptorDim = descriptors.size();
-      trainFeatureMat =
-          cv::Mat::zeros(pedFn.size() + NotPedFn.size(), DescriptorDim,
-                         CV_32FC1); // Data for cv::Mat
-      trainLabelMat =
-          cv::Mat::zeros(pedFn.size() + NotPedFn.size(), 1, CV_32SC1);
-    }
 
     for (int j = 0; j < DescriptorDim; j++) {
       trainFeatureMat.at<float>(i, j) = descriptors[j];
@@ -88,7 +98,7 @@ int main(int argc, char **argv) {
     order[i] = i;
   }
 
-  // not ped Label = 0
+  // neg Label = 0
   for (size_t i = 0; i < NotPedFn.size(); i++) {
     cv::Mat image = imread(NotPedFn[i]);
 
@@ -121,8 +131,6 @@ int main(int argc, char **argv) {
 
   // svm params
   prepare_param();
-  char model_file_name[100];
-  sprintf(model_file_name, "../model/perclos.model");
 
   prob.l = trainFeatureMat.rows;
   prob.y = Malloc(double, prob.l);
@@ -160,6 +168,34 @@ int main(int argc, char **argv) {
   free(x_space);
 
   return 0;
+}
+
+void arg_parse(int argc, char **argv) {
+  int opt;
+  char *arg_str = "p:n:m:r:";
+
+  while ((opt = getopt(argc, argv, arg_str)) != -1) {
+    switch (opt) {
+      case 'p':
+        snprintf(pos_image_path, BUFFER_LEN, "%s", optarg);
+        printf("-p: %s\n", pos_image_path);
+        break;
+      case 'n':
+        snprintf(neg_image_path, BUFFER_LEN, "%s", optarg);
+        printf("-n: %s\n", neg_image_path);
+        break;
+      case 'm':
+        snprintf(model_file_name, BUFFER_LEN, "%s", optarg);
+        printf("-m: %s\n", model_file_name);
+        break;
+      case 'r':
+        snprintf(model_params, BUFFER_LEN, "%s", optarg);
+        printf("-param(r): %s\n", model_params);
+        break;
+      default:
+        break;
+    }
+  }
 }
 
 void ZScore(cv::Mat &trainData, vector<double> &mean,
@@ -231,8 +267,8 @@ void saveParams(vector<double> &mean, vector<double> &standard) {
 
   int i = 0;
   ofstream ofileParam;
-  ofileParam.open("../model/perclosParam", ios::out);
-  for (i = 0; i < 2; i++) //行
+  ofileParam.open(model_params, ios::out);
+  for (i = 0; i < 2; i++)  //行
   {
     for (size_t j = 0; j < mean.size(); j++) {
       if (i == 0) {
@@ -280,7 +316,7 @@ void prepare_param() {
   param.svm_type = C_SVC;
   param.kernel_type = RBF;
   param.degree = 3;
-  param.gamma = GAMMA; // 1/num_features
+  param.gamma = GAMMA;  // 1/num_features
   param.coef0 = 0;
   param.nu = 0.5;
   param.cache_size = 100;

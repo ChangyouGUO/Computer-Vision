@@ -21,6 +21,7 @@ include_directories(${THIRDPARTY_DEPS_DIR}/LibSVM/)
 
 
 ### ------ Module Compile ------ ###
+# detection
 set(PREDICT_LIST "source/main.cpp" "source/hog.cpp")
 add_executable(${TARGET_NAME} ${PREDICT_LIST})
 
@@ -28,12 +29,22 @@ target_link_libraries(${TARGET_NAME}
 ${OpenCV_LIBS}
 )
 
-
+# ped train
 set(PEDESTRIAN_TRAIN "ped_train")
 set(TRAIN_LIST "source/ped_train.cpp")
 add_executable(${PEDESTRIAN_TRAIN}  ${TRAIN_LIST})
 
 target_link_libraries(${PEDESTRIAN_TRAIN} 
+${OpenCV_LIBS}
+LibSVM
+)
+
+# ped eval 
+set(PEDESTRIAN_EVAL "ped_eval")
+set(EVAL_LIST "source/ped_eval.cpp")
+add_executable(${PEDESTRIAN_EVAL}  ${EVAL_LIST})
+
+target_link_libraries(${PEDESTRIAN_EVAL} 
 ${OpenCV_LIBS}
 LibSVM
 )
