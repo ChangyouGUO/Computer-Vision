@@ -22,11 +22,12 @@ include_directories(${THIRDPARTY_DEPS_DIR}/LibSVM/)
 
 ### ------ Module Compile ------ ###
 # detection
-set(PREDICT_LIST "source/main.cpp" "source/hog.cpp")
+set(PREDICT_LIST "source/ped_predict.cpp" "source/hog.cpp")
 add_executable(${TARGET_NAME} ${PREDICT_LIST})
 
 target_link_libraries(${TARGET_NAME} 
 ${OpenCV_LIBS}
+LibSVM
 )
 
 # ped train
