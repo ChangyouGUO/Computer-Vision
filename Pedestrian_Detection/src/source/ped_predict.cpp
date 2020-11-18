@@ -1,17 +1,17 @@
 #include "ped_predict.hpp"
 
 #include <getopt.h>
+#include <sys/stat.h>
 #include <iostream>
 #include <log.hpp>
-#include <sys/stat.h>
 #include <vector>
 
 using namespace std;
 using namespace cv;
 using namespace ml;
 
-#define DEFAULT_IMG_PATH                                                       \
-  ("/home/guo/moDisk/gCode/Computer-Vision/Pedestrian_Detection/imgs/"         \
+#define DEFAULT_IMG_PATH                                               \
+  ("/home/guo/moDisk/gCode/Computer-Vision/Pedestrian_Detection/imgs/" \
    "COCO_test2014_000000000014.jpg")
 
 static char *fileline = NULL;
@@ -29,15 +29,13 @@ int release();
 static char *ReadLine(FILE *input) {
   int len;
 
-  if (fgets(fileline, max_line_len, input) == NULL)
-    return NULL;
+  if (fgets(fileline, max_line_len, input) == NULL) return NULL;
 
   while (strrchr(fileline, '\n') == NULL) {
     max_line_len *= 2;
     fileline = (char *)realloc(fileline, max_line_len);
     len = (int)strlen(fileline);
-    if (fgets(fileline + len, max_line_len - len, input) == NULL)
-      break;
+    if (fgets(fileline + len, max_line_len - len, input) == NULL) break;
   }
   return fileline;
 }
@@ -86,6 +84,8 @@ cv::Rect2i patch_rect;
 int click_flag = 0;
 
 int init() {
+  pedestrian_classifier = new PedestrianClassifier();
+
   // load model
   if ((pedestrian_classifier->model_ = svm_load_model(model_path)) == 0) {
     fprintf(stderr, "can't open model file %s\n", model_path);
@@ -116,10 +116,10 @@ int init() {
 
   if (pedestrian_classifier->svm_type_ == NU_SVR ||
       pedestrian_classifier->svm_type_ == EPSILON_SVR) {
-
-    printf("Prob. model for test data: target value = predicted value + z,\nz: "
-           "Laplace distribution e^(-|z|/sigma)/(2sigma),sigma=%g\n",
-           svm_get_svr_probability(pedestrian_classifier->model_));
+    printf(
+        "Prob. model for test data: target value = predicted value + z,\nz: "
+        "Laplace distribution e^(-|z|/sigma)/(2sigma),sigma=%g\n",
+        svm_get_svr_probability(pedestrian_classifier->model_));
   } else {
     int labels[pedestrian_classifier->nr_class_];
     svm_get_labels(pedestrian_classifier->model_, labels);
@@ -216,8 +216,8 @@ void process() {
   }
   pedestrian_classifier->x_[j].index = -1;
 
-#if (PREDICT_PROBABILITY)
   double predict_label;
+#if (PREDICT_PROBABILITY)
   if (pedestrian_classifier->svm_type_ == C_SVC ||
       pedestrian_classifier->svm_type_ == NU_SVC) {
     predict_label = svm_predict_probability(
@@ -227,11 +227,11 @@ void process() {
     for (int j = 0; j < pedestrian_classifier->nr_class_; j++)
       printf(" %g", pedestrian_classifier->prob_estimate_[j]);
     printf("\n");
-  } else {
-    predict_label =
-        svm_predict(pedestrian_classifier->model_, pedestrian_classifier->x_);
-    printf("%.17g\n", predict_label);
   }
+#else
+  predict_label =
+      svm_predict(pedestrian_classifier->model_, pedestrian_classifier->x_);
+  printf("%.17g\n", predict_label);
 #endif
 }
 
@@ -242,6 +242,7 @@ int release() {
 #ifdef PREDICT_PROBABILITY
   free(pedestrian_classifier->prob_estimate_);
 #endif
+  free(pedestrian_classifier);
   return 0;
 }
 
@@ -260,16 +261,16 @@ void arg_parse(int argc, char **argv) {
 
   while ((opt = getopt(argc, argv, arg_str)) != -1) {
     switch (opt) {
-    case 'p':
-      snprintf(param_path, BUFFER_LEN, "%s", optarg);
-      printf("-p: %s\n", param_path);
-      break;
-    case 'm':
-      snprintf(model_path, BUFFER_LEN, "%s", optarg);
-      printf("-m: %s\n", model_path);
-      break;
-    default:
-      break;
+      case 'p':
+        snprintf(param_path, BUFFER_LEN, "%s", optarg);
+        printf("-p: %s\n", param_path);
+        break;
+      case 'm':
+        snprintf(model_path, BUFFER_LEN, "%s", optarg);
+        printf("-m: %s\n", model_path);
+        break;
+      default:
+        break;
     }
   }
 }

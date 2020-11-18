@@ -11,10 +11,10 @@
 #define ORIENT (9)
 #define BUFFER_LEN (256)
 #define KERNEL (SVM::RBF)
-#define PREDICT_PROBABILITY (1)
+#define PREDICT_PROBABILITY (0)
 
 class PedestrianClassifier {
-public:
+ public:
   int descriptor_dim_;
   std::vector<double> mean_;
   std::vector<double> std_;
@@ -37,7 +37,8 @@ public:
                         cv::Size(PIXEL_PER_CELL, PIXEL_PER_CELL),
                         cv::Size(PIXEL_PER_CELL, PIXEL_PER_CELL), ORIENT, 1,
                         (-1.0), cv::HOGDescriptor::L2Hys, 0.2, true),
-        mean_(descriptor_dim_, 0), std_(descriptor_dim_, 1) {}
+        mean_(descriptor_dim_, 0),
+        std_(descriptor_dim_, 1) {}
 };
 
-#endif //  _SRC_INCLUDE_PED_PREDICT_HPP_
+#endif  //  _SRC_INCLUDE_PED_PREDICT_HPP_
